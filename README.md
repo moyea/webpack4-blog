@@ -1,4 +1,153 @@
-## webpack4默认配置
+# Webpack中文文档
+
+## 什么是webpack
+
+在考虑使用任何工具前，你需要明确一个重要的问题就是该工具能解决你的问题。webpack是一个模块打包器，这意味着它的目的是合并一组模块（包括模块间的依赖）。输出可能是一个一个或多个文件。当然除了捆绑模块之外，webpack也可以对你的文件执行各种操作：例如，将scss转换为css，将typescript转换为javascript。甚至可以压缩所有图像文件!但是为什么要打包模块呢？
+
+### 打包模块的目的
+
+除了使用许多`<script>`标签之外，我们没有办法将为浏览器提供的javascript代码拆分为多个文件。我们需要编写想要用于HTML代码的每个文件的源代码并不是很方便。社区提出了一些解决方法：CommonJS(在Node.js)中实现和AMD。在ES6之后，我们可以使用ES6的语法去做到。 
+
+## ES6模块
+
+使用ES6，定义了一个内置于JavaScript语言规范中的标准格式的模块。但是，并不意味着浏览器中能很好的实现。即使浏览器支持ES6，我们也可能希望将模块打包到更少的文件中。为了开始使用webpack，我们需要对ES6模块的语法有一定的了解。
+
+### export
+
+**export**语句用于创建JavaScript模块。可以使用它来导出对象(包括函数)和原始值。需要注意，导出的模块处于严格模式。导出有两种类型：**命名**和**默认**。
+
+#### 命名export 
+
+每个模块可以有多个命名导出。
+
+lib.js
+
+```js
+export function sum(a, b) {
+  return a + b;
+}
+
+export function sub(a, b) {
+  return a - b;
+}
+
+function divide(a, b) {
+  return a / b;
+}
+
+export { divide };
+```
+
+如果想在声明后导出某些内容，则需要将其包装在大括号中(如：divide)。
+
+#### 默认导出
+
+每个模块只能有一个默认导出。
+
+dog.js
+
+```js
+export default class Dog {
+  bark() {
+    console.log('bark!');
+  }
+}
+```
+
+### import
+
+**import**用于从导入其他模块。
+
+#### 导入整个模块的内容
+
+index.js
+
+```js
+import * as lib from './lib.js';
+
+console.log(lib.sum(2,1));
+console.log(lib.sub(3,1));
+console.log(lib.divide(6,3));
+```
+
+可以为导入的模块设置任何所需的名称。如果要从具有默认导出的模块中导入整个内用，则将其置于**default**属性中。
+
+index.js
+
+```js
+import * as Dog from './dog.js';
+
+const dog = new Dog.default();
+dog.bark();
+```
+
+#### 导入一个或多个命名导出
+
+index.js
+
+```js
+import { sum, sub, divide } from './lib';
+
+console.log(sum(1,2));
+console.log(sub(3,1));
+console.log(divide(6,3));
+```
+
+需要注意导入值的名称必须和导出的相匹配。
+
+#### 导入默认导出
+
+index.js
+
+```js
+import Dog from './dog';
+
+const dog = new Dog();
+dog.bark();
+```
+
+注意，可以使用任何名称导入默认导出。因此可以执行以下操作：
+
+index.js
+
+```js
+import Cat from './dog.js';
+
+const dog = new Cat();
+dog.bark();
+```
+
+其他更多(导出)[https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/export]和(导入)[https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/import]示例，可参看MDN Web文档。
+
+## webpack基本概念
+
+从版本4开始，webpack不需要任何配置。它有一组默认值。如果要创建配置文件，则需要将其命名为`webpack.config.js`。
+
+### webpack.config.js
+
+由于是在Node.js中编写webpack配置文件，因此它使用CommonJS类型的模块。
+
+`webpack.config.js`导出一个对象。如果你通过控制台运行webpack，它将查找该文件并使用它。
+
+**Entry**
+
+Webpack需要一个入口，它指示webpack从哪里开始打包模块。默认值如下：
+
+webpack.config.js
+
+```js
+module.exports = {
+  entry: './src/index.js'
+}
+```
+
+这意味着webpack将转到`./src/index.js`文件，并开始打包。如果在index中导入其他任何js文件，webpack也会处理它们。
+
+可以拥有多个入口点，但对于单页应用程序，通常只有一个入口点。
+
+**Output**
+
+**output**是webpack输出打包的配置。默认为`./dist/main.js`文件。
 
 ```js
 const path = require('path');
@@ -12,7 +161,53 @@ module.exports = {
 }
 ```
 
+## 运行webpack
+
+首先需要安装webpack。
+
+```bash
+npm init -y
+npm install webpack
+```
+
+这将创建一个带有webpack目录的`node_modules`，以及`package.json`和`package-lock.json`。
+
+打开package.json文件并修改脚本:
+
+```js
+"scripts": {
+  "build": "webpack"
+}
+```
+
+通过这个，运行`npm run build`将使用`node_modules`目录中的webpack。
+
 ### 多个入口及输出
+
+前面的功能并不需要任何配置文件。如果想做其他操作，就需要创建`webpack.config.js`。
+
+**entry**
+
+配置详中的entry不必是字符串。如果需要多个入口，可以使用对象。
+
+webpack.config.js
+
+```js
+module.exports = {
+  entry: {
+    first: './src/one.js',
+    second: './src/two.js'
+  }
+}
+```
+
+使用该代码，我们就创建了两个入口点。这在开发多页面时会很有用。
+
+**output**
+
+这里存在一个问题：默认情况下，只会生成一个输出文件。这个问题很容易解决。
+
+webpack.config.js
 
 ```js
 const path = require('path');
@@ -28,6 +223,10 @@ module.exports = {
   }
 }
 ```
+
+使用上面的代码，我们指明可能会有多个文件作为输出。所有的文件现在将有一个不同的名称，这里是`first.bundle.js`和`second.bundle.js`，和我们的entry一样。
+
+如果以之前的方式运行webpack，它将找到`webpack.config.js`文件并应用配置。
 
 ## 添加loaders
 
@@ -627,7 +826,7 @@ module.exports = {
 
 Webpack4中引入**mode**参数，在这之后我们需要指定这个参数，如果不指定这个参数，webpack会使用默认的值production，并且会产生一条警告信息。使用`mode: "production"`，Webpack将为我们设置一些配置，这样，我们输出的代码就更适合生产环境。下面是它具体产生的作用。
 
-### UglifyJsPlugin
+#### UglifyJsPlugin
 
 将**mode**设置为production会将UglifyJsPlugin添加到我们的配置中。它可以通过压缩和缩小来使我们的代码更短，更快。执行从缩短变量名称，删除空格到删除冗余代码这样简单的任务。默认情况下，它解析每个**.js**文件。虽然Webpabk4根据所选**mode**来进行优化，但仍可以通过**optimization**属性对其进行配置。
 
@@ -662,7 +861,7 @@ new UglifyJsPlugin({
 
 这些属性可以让我们自己去配置**UglifyJsPlugin**，从而是我们的代码更短更轻量。其他的属性及默认值可以参考[官方文档](https://github.com/mishoo/UglifyJS2/tree/harmony#compress-options)。
 
-### DefinePlugin
+#### DefinePlugin
 
 该插件允许我们创建在编译时解析的全局常量。如果使用`mode: 'production'`，webpack将设置`"process.env.NODE_ENV": JSON.stringify("production")`，默认情况下:
 
@@ -706,7 +905,7 @@ console.log("production");
 console.log("this is production!");
 ```
 
-### NoEmitOnErrorsPlugin
+#### NoEmitOnErrorsPlugin
 
 该插件将帮助我们在编译期间处理错误。例如，可能存在你**import**的文件webpack无法解析，在这种情况下，webpack会创建一个包含该错误的新版本应用程序。通过该插件，webpack就不会去创建新的版本了。
 
@@ -724,7 +923,7 @@ module.exports = {
 }
 ```
 
-### ModuleConcatenationPlugin
+#### ModuleConcatenationPlugin
 
 默认情况下，Webpack将bundle中每个模块包装在单独的闭包函数中。这些闭包函数会使JavaScript执行起来慢一些。以下是一个示例：
 
@@ -821,7 +1020,7 @@ console.log(one, two);
 
 ## development server
 
-更好的开始体验是在`watch`模式下运行webpack。尝试运行
+更好的开发体验是在`watch`模式下运行webpack。尝试运行
 
 ```bash
 webpack -watch
@@ -967,7 +1166,7 @@ module.exports = {
 
 **NamedModulesPlugin**和**NamedChunksPlugin**的另一个优点是，不再使用可以通过添加和删除依赖项而更改的ID。由于在实际输出文件中使用了id或名称，因此更改它们将更改文件的hash值，即使模块内容没有改变。使用**NamedModulesPlugin**和**NamedChunksPlugin**将帮我们处理浏览器的缓存。以下是一个示例:
 
-没有 **NamedModulesPlugin **和 **NamedChunksPlugin**:
+没有 **NamedModulesPlugin**和 **NamedChunksPlugin**:
 
 ```js
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([[2],{
@@ -979,7 +1178,7 @@ module.exports = {
 ]);
 ```
 
-使用 **NamedModulesPlugin **和 **NamedChunksPlugin**:
+使用 **NamedModulesPlugin**和 **NamedChunksPlugin**:
 
 ```js
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([["utilities~main"],{
@@ -1055,11 +1254,11 @@ utilities.js
 
 ```js
 export function add(a, b) {
-    return a + b;
+  return a + b;
 }
 
 export function sub(a, b) {
-    return a - b;
+  return a - b;
 }
 ```
 
@@ -1248,7 +1447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ### 在webpack中使用特殊注释
 
-**import** 规范中不允许你使用出文件名之外的任何其他参数。但是通过webpack，你可以用特殊注释来做到这一点。
+**import** 规范中不允许你使用出文件名之外的任何其他参数。但是可以借助webpack的特殊注释来做到这一点。
 
 #### webpackInclude和webpackExclude
 
