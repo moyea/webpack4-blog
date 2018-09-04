@@ -1,4 +1,4 @@
-# Webpack中文文档
+# Webpack学习指南
 
 ## 什么是webpack
 
